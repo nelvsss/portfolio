@@ -1,0 +1,87 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --radius-2xl: calc(var(--radius) + 8px);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-gold: #e2b714;
+  --color-gold-dark: #b8960f;
+  --color-navy-darkest: #060a0f;
+  --color-navy-dark: #0a0e14;
+  --color-navy: #151a23;
+  --color-navy-light: #1f2532;
+  --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
+}
+
+:root {
+  --radius: 0.625rem;
+  /* Dark portfolio theme - always dark */
+  --background: #0a0e14;
+  --foreground: #f3f4f6;
+  --card: #151a23;
+  --card-foreground: #f3f4f6;
+  --popover: #151a23;
+  --popover-foreground: #f3f4f6;
+  --primary: #e2b714;
+  --primary-foreground: #0a0e14;
+  --secondary: #1f2532;
+  --secondary-foreground: #f3f4f6;
+  --muted: #1f2532;
+  --muted-foreground: #9ca3af;
+  --accent: #1f2532;
+  --accent-foreground: #f3f4f6;
+  --destructive: #ef4444;
+  --border: rgba(255, 255, 255, 0.1);
+  --input: rgba(255, 255, 255, 0.15);
+  --ring: #e2b714;
+  --chart-1: #e2b714;
+  --chart-2: #64ffda;
+  --chart-3: #7c3aed;
+  --chart-4: #f43f5e;
+  --chart-5: #06b6d4;
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+    margin: 0;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+}
