@@ -1,4 +1,5 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { supabase } from '@/lib/supabase'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -6,7 +7,7 @@ import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Separator } from '@/components/ui/separator'
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet'
-import { Mail, Github, Linkedin, ArrowDown, Briefcase, Code, Wrench, Send, Menu, Database, BarChart3, GraduationCap, Award, Phone } from 'lucide-react'
+import { Mail, Github, Linkedin, ArrowDown, Briefcase, Code, Wrench, Send, Menu, Database, BarChart3, GraduationCap, Award, Phone, FileDown, Eye, X } from 'lucide-react'
 
 function App() {
   const [formData, setFormData] = useState({
@@ -15,14 +16,57 @@ function App() {
     message: ''
   })
   const [submitted, setSubmitted] = useState(false)
+  const [submitting, setSubmitting] = useState(false)
+  const [error, setError] = useState(null)
+  const [activeCert, setActiveCert] = useState(null)
+  const [resumeUrl, setResumeUrl] = useState(null)
+  const [resumeOpen, setResumeOpen] = useState(false)
+
+  useEffect(() => {
+    const fetchResume = async () => {
+      const { data, error } = await supabase
+        .from('resume')
+        .select('resume_url')
+        .order('resume_id', { ascending: false })
+        .limit(1)
+        .maybeSingle()
+
+      if (data && !error) {
+        const { data: urlData } = supabase.storage
+          .from('resume')
+          .getPublicUrl(data.resume_url)
+        setResumeUrl(urlData.publicUrl)
+      }
+    }
+    fetchResume()
+  }, [])
 
   const handleFormChange = (e) => {
     const { name, value } = e.target
     setFormData(prev => ({ ...prev, [name]: value }))
   }
 
-  const handleFormSubmit = (e) => {
+  const handleFormSubmit = async (e) => {
     e.preventDefault()
+    setSubmitting(true)
+    setError(null)
+
+    const { error } = await supabase
+      .from('contact_message')
+      .insert([{
+        name: formData.name,
+        email: formData.email,
+        message: formData.message,
+      }])
+
+    setSubmitting(false)
+
+    if (error) {
+      setError('Failed to send message. Please try again.')
+      console.error('Supabase error:', error)
+      return
+    }
+
     setSubmitted(true)
     setFormData({ name: '', email: '', message: '' })
     setTimeout(() => setSubmitted(false), 3000)
@@ -51,17 +95,40 @@ function App() {
   ]
 
   const certifications = [
-    'CCNAv7: Switching, Routing, and Wireless Essentials \u2013 Cisco',
-    'CCNAv7: Introduction to Networks \u2013 Cisco',
-    'ASEAN Data Science Explorers \u2013 Enablement Session 2023/2024',
-    'Hackin\u2019 Ka Na Lang 2023 \u2013 Cybersecurity Conference',
-    'BITCON \u2013 Batangas IT Conference',
-    'PIVOT 2025 \u2013 Regional Tech & Innovation Summit',
-  ]
-
-  const awards = [
-    '4th Place, Advanced Computer Programming',
-    'Dean\u2019s Lister \u2013 Batangas State University (1st Sem, AY 2024\u20132025)',
+    {
+      name: 'Data Analytics Essentials \u2013 Cisco',
+      description: 'Completed Cisco\u2019s Data Analytics Essentials course, gaining foundational skills in data collection, preparation, analysis, and visualization \u2014 including hands-on practice with tools and techniques used to derive actionable insights from data.',
+      certificate: '/Data_Analytics_Essentials_certificate_nelvingarciacatapang-gmail-com_60ceb2a0-06bd-413a-8092-c9ad3abf5082.pdf',
+    },
+    {
+      name: 'CCNAv7: Switching, Routing, and Wireless Essentials \u2013 Cisco',
+      certificate: '/CCNA-_Switching-_Routing-_and_Wireless_Essentials_certificate_22-02551-g-batstate-u-edu-ph_23ed3d9e-d83a-47fe-916a-9d8c213175ea.pdf',
+    },
+    {
+      name: 'CCNAv7: Introduction to Networks \u2013 Cisco',
+      certificate: '/CCNA-_Introduction_to_Networks_certificate_22-02551-g-batstate-u-edu-ph_784af1c1-ed9d-4bea-a295-d25f16fcb1a6.pdf',
+    },
+    {
+      name: 'Apply AI: Update Your Resume \u2013 Cisco',
+      certificate: '/Apply_AI-_Update_Your_Resume_certificate_nelvingarciacatapang-gmail-com_7829b400-7404-4b57-ba95-a85cd0054212.pdf',
+    },
+    {
+      name: 'Computer Hardware Basics \u2013 Cisco',
+      certificate: '/Computer_Hardware_Basics_certificate_nelvingarciacatapang-gmail-com_69e85e6d-087d-4126-a92d-b716cff708a6.pdf',
+    },
+    {
+      name: 'ASEAN Data Science Explorers \u2013 Enablement Session 2023/2024',
+      certificate: '/ADSE_NELVIN G. CATAPANG .pdf',
+    },
+    { name: 'Hackin\u2019 Ka Na Lang 2023 \u2013 Cybersecurity Conference' },
+    {
+      name: 'BITCON \u2013 Batangas IT Conference',
+      certificate: '/JPCS BSU Alangilan 0334 Nelvin G. Catapang.pdf',
+    },
+    {
+      name: 'PIVOT 2025 \u2013 Regional Tech & Innovation Summit',
+      certificate: '/Nelvin G. Catapang.png',
+    },
   ]
 
   const skills = [
@@ -199,6 +266,30 @@ function App() {
               <p className="text-muted-foreground text-sm">
                 <span className="text-gold">Location:</span> Balete, Batangas City, Philippines
               </p>
+              <div className="flex gap-3">
+                <Button
+                  variant="outline"
+                  disabled={!resumeUrl}
+                  onClick={() => setResumeOpen(true)}
+                  className="border-gold text-gold hover:bg-gold hover:text-navy-dark font-semibold uppercase tracking-widest text-sm px-6 py-4 cursor-pointer disabled:opacity-50"
+                >
+                  <Eye className="mr-2 w-4 h-4" />
+                  {resumeUrl ? 'View Resume' : 'Loading...'}
+                </Button>
+                <a
+                  href={resumeUrl || '#'}
+                  download
+                >
+                  <Button
+                    variant="outline"
+                    disabled={!resumeUrl}
+                    className="border-gold/50 text-gold/70 hover:bg-gold hover:text-navy-dark font-semibold uppercase tracking-widest text-sm px-6 py-4 cursor-pointer disabled:opacity-50"
+                  >
+                    <FileDown className="mr-2 w-4 h-4" />
+                    Download
+                  </Button>
+                </a>
+              </div>
             </div>
             <div className="flex justify-center">
               <div className="relative">
@@ -245,8 +336,8 @@ function App() {
               ))}
             </div>
 
-            {/* Certifications & Awards */}
-            <div className="grid md:grid-cols-2 gap-8 mt-16">
+            {/* Certifications */}
+            <div className="grid md:grid-cols-1 gap-8 mt-16">
               <Card className="bg-card/60 border-white/5">
                 <CardHeader>
                   <CardTitle className="text-lg text-gold flex items-center gap-2">
@@ -258,26 +349,22 @@ function App() {
                   <ul className="space-y-3">
                     {certifications.map((cert, i) => (
                       <li key={i} className="text-muted-foreground text-sm flex items-start gap-2">
-                        <span className="text-gold mt-1">&#x25B8;</span>
-                        {cert}
-                      </li>
-                    ))}
-                  </ul>
-                </CardContent>
-              </Card>
-              <Card className="bg-card/60 border-white/5">
-                <CardHeader>
-                  <CardTitle className="text-lg text-gold flex items-center gap-2">
-                    <Award className="w-5 h-5" />
-                    Awards
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <ul className="space-y-3">
-                    {awards.map((award, i) => (
-                      <li key={i} className="text-muted-foreground text-sm flex items-start gap-2">
-                        <span className="text-gold mt-1">&#x25B8;</span>
-                        {award}
+                        <span className="text-gold mt-1 shrink-0">&#x25B8;</span>
+                        <span className="flex flex-col items-start gap-1.5">
+                          <span className={cert.description ? 'text-foreground font-medium' : ''}>{cert.name}</span>
+                          {cert.description && (
+                            <p className="text-muted-foreground text-xs leading-relaxed">{cert.description}</p>
+                          )}
+                          {cert.certificate && (
+                            <button
+                              onClick={() => setActiveCert(cert)}
+                              className="inline-flex items-center gap-1 text-xs text-gold border border-gold/40 rounded px-2 py-0.5 hover:bg-gold/10 transition-colors cursor-pointer"
+                            >
+                              <Award className="w-3 h-3" />
+                              View Certificate
+                            </button>
+                          )}
+                        </span>
                       </li>
                     ))}
                   </ul>
@@ -437,22 +524,109 @@ function App() {
                   </div>
                   <Button
                     type="submit"
-                    className="w-full bg-gold text-navy-dark hover:bg-gold-dark font-bold uppercase tracking-wider cursor-pointer"
+                    disabled={submitting}
+                    className="w-full bg-gold text-navy-dark hover:bg-gold-dark font-bold uppercase tracking-wider cursor-pointer disabled:opacity-50"
                     size="lg"
                   >
-                    {submitted ? 'Message Sent!' : (
+                    {submitting ? 'Sending...' : submitted ? 'Message Sent!' : (
                       <>
                         <Send className="w-4 h-4 mr-2" />
                         Send Message
                       </>
                     )}
                   </Button>
+                  {error && (
+                    <p className="text-red-400 text-sm text-center mt-2">{error}</p>
+                  )}
                 </form>
               </CardContent>
             </Card>
           </div>
         </section>
       </main>
+
+      {/* Resume Modal */}
+      {resumeOpen && (
+        <div
+          className="fixed inset-0 z-100 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4"
+          onClick={() => setResumeOpen(false)}
+        >
+          <div
+            className="relative w-full max-w-4xl max-h-[90vh] bg-navy-dark rounded-xl border border-white/10 shadow-2xl flex flex-col"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between px-5 py-4 border-b border-white/10 shrink-0">
+              <h3 className="text-foreground font-semibold text-sm pr-4 leading-snug">Resume</h3>
+              <div className="flex items-center gap-3">
+                <a
+                  href={resumeUrl}
+                  download
+                  className="text-muted-foreground hover:text-gold transition-colors"
+                  title="Download"
+                >
+                  <FileDown className="w-5 h-5" />
+                </a>
+                <button
+                  onClick={() => setResumeOpen(false)}
+                  className="text-muted-foreground hover:text-gold transition-colors shrink-0"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+            </div>
+            <div className="flex-1 overflow-auto min-h-0">
+              <iframe
+                src={resumeUrl}
+                className="w-full h-[75vh]"
+                title="Resume"
+              />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Certificate Modal */}
+      {activeCert && (
+        <div
+          className="fixed inset-0 z-100 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4"
+          onClick={() => setActiveCert(null)}
+        >
+          <div
+            className="relative w-full max-w-4xl max-h-[90vh] bg-navy-dark rounded-xl border border-white/10 shadow-2xl flex flex-col"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Modal Header */}
+            <div className="flex items-center justify-between px-5 py-4 border-b border-white/10 shrink-0">
+              <h3 className="text-foreground font-semibold text-sm pr-4 leading-snug">{activeCert.name}</h3>
+              <button
+                onClick={() => setActiveCert(null)}
+                className="text-muted-foreground hover:text-gold transition-colors shrink-0"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            {/* Modal Body */}
+            <div className="flex-1 overflow-hidden rounded-b-xl bg-white/5">
+              {activeCert.certificate.endsWith('.png') || activeCert.certificate.endsWith('.jpg') || activeCert.certificate.endsWith('.jpeg') ? (
+                <div className="w-full h-full overflow-auto flex items-center justify-center p-4">
+                  <img
+                    src={activeCert.certificate}
+                    alt={activeCert.name}
+                    className="max-w-full max-h-full object-contain rounded shadow-lg"
+                  />
+                </div>
+              ) : (
+                <iframe
+                  src={`${activeCert.certificate}#toolbar=0&navpanes=0&scrollbar=0`}
+                  title={activeCert.name}
+                  className="w-full h-full border-0"
+                  style={{ height: '75vh', display: 'block' }}
+                />
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Footer */}
       <footer className="text-center py-8 px-6 text-muted-foreground text-sm border-t border-white/5">
