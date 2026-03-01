@@ -158,7 +158,7 @@ function App() {
             NELVIN
           </span>
           <ul className="hidden md:flex gap-8 list-none m-0 p-0">
-            {[{label: 'About', href: 'about'}, {label: 'Education', href: 'experience'}, {label: 'Projects', href: 'projects'}, {label: 'Skills', href: 'skills'}, {label: 'Contact', href: 'contact'}].map((item) => (
+            {[{ label: 'About', href: 'about' }, { label: 'Education', href: 'experience' }, { label: 'Projects', href: 'projects' }, { label: 'Skills', href: 'skills' }, { label: 'Contact', href: 'contact' }].map((item) => (
               <li key={item.label}>
                 <a
                   href={`#${item.href}`}
@@ -169,7 +169,7 @@ function App() {
               </li>
             ))}
           </ul>
-          
+
           <div className="md:hidden">
             <Sheet>
               <SheetTrigger asChild>
@@ -186,7 +186,7 @@ function App() {
                 </div>
                 {/* Nav Links */}
                 <nav className="flex flex-col px-4 py-6 gap-1">
-                  {[{label: 'About', href: 'about'}, {label: 'Education', href: 'experience'}, {label: 'Projects', href: 'projects'}, {label: 'Skills', href: 'skills'}, {label: 'Contact', href: 'contact'}].map((item) => (
+                  {[{ label: 'About', href: 'about' }, { label: 'Education', href: 'experience' }, { label: 'Projects', href: 'projects' }, { label: 'Skills', href: 'skills' }, { label: 'Contact', href: 'contact' }].map((item) => (
                     <a
                       key={item.label}
                       href={`#${item.href}`}
