@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo, useRef } from 'react'
 import { supabase } from '@/lib/supabase'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
@@ -8,6 +8,8 @@ import { Textarea } from '@/components/ui/textarea'
 import { Separator } from '@/components/ui/separator'
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet'
 import { Mail, Github, Linkedin, ArrowDown, Briefcase, Code, Wrench, Send, Menu, Database, BarChart3, GraduationCap, Award, Phone, FileDown, Eye, X } from 'lucide-react'
+
+const PARTICLE_COUNT = 20
 
 function App() {
   const [formData, setFormData] = useState({
@@ -20,6 +22,46 @@ function App() {
   const [error, setError] = useState(null)
   const [activeCert, setActiveCert] = useState(null)
   const [resumeUrl, setResumeUrl] = useState(null)
+  const aboutRef = useRef(null)
+  const eduRef = useRef(null)
+  const projRef = useRef(null)
+  const skillsRef = useRef(null)
+
+  // Scroll-reveal for About + Education + Projects + Skills sections
+  useEffect(() => {
+    const sections = [aboutRef.current, eduRef.current, projRef.current, skillsRef.current].filter(Boolean)
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('in-view')
+            entry.target.classList.remove('out-view')
+          } else {
+            entry.target.classList.remove('in-view')
+            entry.target.classList.add('out-view')
+          }
+        })
+      },
+      { threshold: 0.15 }
+    )
+    sections.forEach((section) => {
+      const items = section.querySelectorAll('.reveal, .reveal-left, .reveal-right')
+      items.forEach((el) => observer.observe(el))
+    })
+    return () => observer.disconnect()
+  }, [])
+
+  const particles = useMemo(() =>
+    Array.from({ length: PARTICLE_COUNT }, (_, i) => ({
+      id: i,
+      left: `${(i * 5.1 + 2) % 100}%`,
+      size: 2 + (i % 5),
+      duration: 8 + (i % 7) * 2,
+      delay: -(i * 1.3),
+      gold: i % 4 === 0,
+      slow: i % 3 === 0,
+    })), []
+  )
   const [resumeOpen, setResumeOpen] = useState(false)
 
   useEffect(() => {
@@ -226,21 +268,39 @@ function App() {
               backgroundSize: '50px 50px',
             }}
           />
+
+          {/* Floating particles */}
+          {particles.map((p) => (
+            <span
+              key={p.id}
+              className="hero-particle"
+              style={{
+                left: p.left,
+                width: p.size,
+                height: p.size,
+                background: p.gold ? 'rgba(226,183,20,0.7)' : 'rgba(255,255,255,0.25)',
+                boxShadow: p.gold ? '0 0 6px 1px rgba(226,183,20,0.4)' : 'none',
+                animationName: p.slow ? 'float-up-slow' : 'float-up',
+                animationDuration: `${p.duration}s`,
+                animationDelay: `${p.delay}s`,
+              }}
+            />
+          ))}
           <div className="relative z-10 px-6">
-            <p className="text-lg sm:text-xl text-muted-foreground mb-3 font-medium animate-in fade-in slide-in-from-bottom-4 duration-700">
+            <p className="hero-greeting text-lg sm:text-xl text-muted-foreground mb-3 font-medium">
               Hi, I'm Nelvin Catapang
             </p>
-            <h1 className="text-5xl sm:text-6xl lg:text-7xl font-extrabold mb-4 bg-linear-to-r from-foreground to-muted-foreground bg-clip-text text-transparent animate-in fade-in slide-in-from-bottom-4 duration-700">
+            <h1 className="hero-title text-5xl sm:text-6xl lg:text-7xl font-extrabold mb-4 bg-linear-to-r from-foreground to-muted-foreground bg-clip-text text-transparent">
               IT &amp; Analytics
             </h1>
-            <p className="text-lg sm:text-xl text-gold max-w-2xl mx-auto mb-10 font-normal animate-in fade-in slide-in-from-bottom-4 duration-700 delay-200">
+            <p className="hero-subtitle text-lg sm:text-xl text-gold max-w-2xl mx-auto mb-10 font-normal">
               Web Development &middot; Data Analytics &middot; Business Intelligence
             </p>
-            <a href="#projects">
+            <a href="#projects" className="hero-cta inline-block">
               <Button
                 variant="outline"
                 size="lg"
-                className="border-gold text-gold hover:bg-gold hover:text-navy-dark font-semibold uppercase tracking-widest text-base px-8 py-6 animate-in fade-in slide-in-from-bottom-4 duration-700 delay-500 cursor-pointer"
+                className="border-gold text-gold hover:bg-gold hover:text-navy-dark font-semibold uppercase tracking-widest text-base px-8 py-6 cursor-pointer"
               >
                 View My Work
                 <ArrowDown className="ml-2 w-4 h-4" />
@@ -250,23 +310,23 @@ function App() {
         </section>
 
         {/* About Section */}
-        <section id="about" className="py-24 px-6 max-w-6xl mx-auto">
-          <div className="text-center mb-16">
+        <section id="about" className="py-24 px-6 max-w-6xl mx-auto" ref={aboutRef}>
+          <div className="text-center mb-16 reveal">
             <h2 className="text-4xl font-bold text-foreground mb-2">About</h2>
             <Separator className="w-16 mx-auto mt-3 bg-gold h-1 rounded-full" />
           </div>
           <div className="grid md:grid-cols-2 gap-12 items-center">
             <div className="space-y-6">
-              <p className="text-muted-foreground text-lg leading-relaxed">
+              <p className="text-muted-foreground text-lg leading-relaxed reveal-left reveal-delay-1">
                 I'm a motivated Information Technology student majoring in Business Analytics at Batangas State University. I combine a versatile technical skillset in Web Development (Node.js/Supabase) with strong Data Analytics capabilities (Power BI/Python).
               </p>
-              <p className="text-muted-foreground text-lg leading-relaxed">
+              <p className="text-muted-foreground text-lg leading-relaxed reveal-left reveal-delay-2">
                 I have practical experience building web-based management systems with integrated AI features. I'm passionate about turning data into actionable insights and building tools that solve real-world problems.
               </p>
-              <p className="text-muted-foreground text-sm">
+              <p className="text-muted-foreground text-sm reveal-left reveal-delay-3">
                 <span className="text-gold">Location:</span> Balete, Batangas City, Philippines
               </p>
-              <div className="flex gap-3">
+              <div className="flex gap-3 reveal-left reveal-delay-4">
                 <Button
                   variant="outline"
                   disabled={!resumeUrl}
@@ -291,7 +351,7 @@ function App() {
                 </a>
               </div>
             </div>
-            <div className="flex justify-center">
+            <div className="flex justify-center reveal-right">
               <div className="relative">
                 <div className="w-64 h-64 rounded-2xl bg-navy-light flex items-center justify-center">
                   <span className="text-[10rem] font-black leading-none text-navy-dark" style={{ textShadow: '-2px -2px 0 #e2b714, 2px -2px 0 #e2b714, -2px 2px 0 #e2b714, 2px 2px 0 #e2b714' }}>
@@ -305,9 +365,9 @@ function App() {
         </section>
 
         {/* Education Section */}
-        <section id="experience" className="py-24 px-6 bg-navy">
+        <section id="experience" className="py-24 px-6 bg-navy" ref={eduRef}>
           <div className="max-w-6xl mx-auto">
-            <div className="text-center mb-16">
+            <div className="text-center mb-16 reveal">
               <h2 className="text-4xl font-bold text-foreground mb-2">Education</h2>
               <Separator className="w-16 mx-auto mt-3 bg-gold h-1 rounded-full" />
             </div>
@@ -315,7 +375,8 @@ function App() {
               {education.map((edu, i) => (
                 <Card
                   key={i}
-                  className="bg-card/60 border-white/5 hover:border-gold/50 hover:translate-x-2 transition-all duration-300 group relative"
+                  className="reveal-left bg-card/60 border-white/5 hover:border-gold/50 hover:translate-x-2 transition-all duration-300 group relative"
+                  style={{ transitionDelay: `${i * 0.15 + 0.1}s` }}
                 >
                   <div className="absolute -left-[2.85rem] top-8 w-4 h-4 bg-gold rounded-full border-4 border-navy-dark shadow-[0_0_0_2px_#e2b714]" />
                   <CardHeader>
@@ -338,7 +399,7 @@ function App() {
 
             {/* Certifications */}
             <div className="grid md:grid-cols-1 gap-8 mt-16">
-              <Card className="bg-card/60 border-white/5">
+              <Card className="reveal bg-card/60 border-white/5" style={{ transitionDelay: '0.25s' }}>
                 <CardHeader>
                   <CardTitle className="text-lg text-gold flex items-center gap-2">
                     <Award className="w-5 h-5" />
@@ -346,12 +407,12 @@ function App() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <ul className="space-y-3">
+                  <ul className="grid md:grid-cols-2 gap-x-8 gap-y-5">
                     {certifications.map((cert, i) => (
                       <li key={i} className="text-muted-foreground text-sm flex items-start gap-2">
                         <span className="text-gold mt-1 shrink-0">&#x25B8;</span>
                         <span className="flex flex-col items-start gap-1.5">
-                          <span className={cert.description ? 'text-foreground font-medium' : ''}>{cert.name}</span>
+                          <span className="text-foreground font-medium">{cert.name}</span>
                           {cert.description && (
                             <p className="text-muted-foreground text-xs leading-relaxed">{cert.description}</p>
                           )}
@@ -375,8 +436,8 @@ function App() {
         </section>
 
         {/* Projects Section */}
-        <section id="projects" className="py-24 px-6 max-w-6xl mx-auto">
-          <div className="text-center mb-16">
+        <section id="projects" className="py-24 px-6 max-w-6xl mx-auto" ref={projRef}>
+          <div className="text-center mb-16 reveal">
             <h2 className="text-4xl font-bold text-foreground mb-2">Projects</h2>
             <Separator className="w-16 mx-auto mt-3 bg-gold h-1 rounded-full" />
           </div>
@@ -384,7 +445,8 @@ function App() {
             {projects.map((project, i) => (
               <Card
                 key={i}
-                className="bg-card/60 border-white/5 hover:border-gold/30 hover:-translate-y-2 hover:shadow-2xl transition-all duration-300 flex flex-col cursor-pointer group"
+                className="reveal bg-card/60 border-white/5 hover:border-gold/30 hover:-translate-y-2 hover:shadow-2xl transition-all duration-300 flex flex-col cursor-pointer group"
+                style={{ transitionDelay: `${i * 0.15 + 0.1}s` }}
               >
                 <CardHeader>
                   <CardTitle className="text-xl bg-linear-to-r from-white to-gray-400 bg-clip-text text-transparent">
@@ -411,21 +473,25 @@ function App() {
         </section>
 
         {/* Skills Section */}
-        <section id="skills" className="py-24 px-6 bg-navy">
+        <section id="skills" className="py-24 px-6 bg-navy" ref={skillsRef}>
           <div className="max-w-6xl mx-auto">
-            <div className="text-center mb-16">
+            <div className="text-center mb-16 reveal">
               <h2 className="text-4xl font-bold text-foreground mb-2">Skills</h2>
               <Separator className="w-16 mx-auto mt-3 bg-gold h-1 rounded-full" />
             </div>
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-8">
-              {skills.map((group) => (
-                <div key={group.category} className="space-y-4">
+              {skills.map((group, gi) => (
+                <div
+                  key={group.category}
+                  className="reveal space-y-4"
+                  style={{ transitionDelay: `${gi * 0.15 + 0.1}s` }}
+                >
                   <h3 className="text-center text-gold uppercase tracking-widest text-sm font-bold flex items-center justify-center gap-2">
                     {group.icon}
                     {group.category}
                   </h3>
                   <ul className="space-y-3">
-                    {group.items.map((skill) => (
+                    {group.items.map((skill, si) => (
                       <li
                         key={skill}
                         className="bg-card/60 px-4 py-3 rounded-lg font-medium border-l-3 border-gold hover:bg-navy-light hover:pl-6 transition-all duration-200"
