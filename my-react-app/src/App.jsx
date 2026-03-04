@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo, useRef } from 'react'
+import emailjs from '@emailjs/browser'
 import { supabase } from '@/lib/supabase'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
@@ -93,25 +94,28 @@ function App() {
     setSubmitting(true)
     setError(null)
 
-    const { error } = await supabase
-      .from('contact_message')
-      .insert([{
-        name: formData.name,
-        email: formData.email,
-        message: formData.message,
-      }])
-
-    setSubmitting(false)
-
-    if (error) {
+    try {
+      await emailjs.send(
+        import.meta.env.VITE_EMAILJS_SERVICE_ID,
+        import.meta.env.VITE_EMAILJS_TEMPLATE_ID,
+        {
+          name: formData.name,
+          email: formData.email,
+          message: formData.message,
+          title: formData.name,
+          to_email: 'nelvingarciacatapang@gmail.com',
+        },
+        import.meta.env.VITE_EMAILJS_PUBLIC_KEY
+      )
+      setSubmitted(true)
+      setFormData({ name: '', email: '', message: '' })
+      setTimeout(() => setSubmitted(false), 3000)
+    } catch (err) {
       setError('Failed to send message. Please try again.')
-      console.error('Supabase error:', error)
-      return
+      console.error('EmailJS error:', err)
+    } finally {
+      setSubmitting(false)
     }
-
-    setSubmitted(true)
-    setFormData({ name: '', email: '', message: '' })
-    setTimeout(() => setSubmitted(false), 3000)
   }
 
   const projects = [
