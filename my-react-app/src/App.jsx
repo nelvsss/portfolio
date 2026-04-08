@@ -495,7 +495,7 @@ function App() {
                     {group.category}
                   </h3>
                   <ul className="space-y-3">
-                    {group.items.map((skill, si) => (
+                    {group.items.map((skill) => (
                       <li
                         key={skill}
                         className="bg-card/60 px-4 py-3 rounded-lg font-medium border-l-3 border-gold hover:bg-navy-light hover:pl-6 transition-all duration-200"
